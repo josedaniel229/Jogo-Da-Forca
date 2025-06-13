@@ -209,7 +209,7 @@
 </style>
 </head>
 <body>
-<header>Desafio Forca</header>
+<header>Desafio Da Forca</header>
 <main>
   <h1 class="game-title">Jogo da Forca</h1>
   <canvas id="hangmanCanvas" width="280" height="320" aria-label="Desenho da forca" role="img"></canvas>
@@ -424,7 +424,7 @@
       drawHangman(wrongGuesses);
 
       if (checkWin()) {
-        statusDisplay.textContent = 'Parabéns! Você ganhou!';
+        statusDisplay.textContent = 'Parabéns! Você acertou!';
         disableAllLetters();
       } else if (wrongGuesses >= maxWrong) {
         statusDisplay.textContent = 'Fim de jogo! A palavra era: ' + chosenWord;
