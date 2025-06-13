@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Desafio Forca Azul</title>
+<style>
+  /* RESET */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: #cce4f7;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  header, footer {
+    background-color: #153c75;
+    padding: 16px 24px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: 1.2px;
+  }
+  main {
+    flex-grow: 1;
+    padding: 20px 24px 40px;
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .game-title {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    color: #a3c1f7;
+    text-shadow: 0 0 8px #739ce6;
+  }
+  #hangmanCanvas {
+    background-color: #112f61;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    max-width: 100%;
+    height: auto;
+    width: 280px;
+    box-shadow: 0 0 15px #1b3f99;
+  }
+  #hangmanWordDisplay {
+    font-size: 3rem;
+    letter-spacing: 16px;
+    margin-bottom: 18px;
+    user-select: none;
+    font-weight: 700;
+    color: #d9e6fc;
+    text-shadow: 0 0 5px #3b63d9;
+  }
+  #hangmanLetters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+  #hangmanLetters button {
+    background-color: #2a5298;
+    border: none;
+    color: #cce4f7;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 14px 18px;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 0 10px #1c3e7b;
+    transition: background-color 0.3s ease;
+    min-width: 42px;
+    user-select: none;
+  }
+  #hangmanLetters button:hover:not(:disabled) {
+    background-color: #3f69d2;
+  }
+  #hangmanLetters button:disabled {
+    background-color: #6a88c9;
+    cursor: default;
+    box-shadow: none;
+    color: #c2d1f4;
+  }
+  #hangmanStatus {
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+    font-weight: 600;
+    min-height: 30px;
+    color: #a5bbff;
+    text-shadow: 0 0 4px #5a7edc;
+  }
+  #hangmanHint {
+    font-size: 1.1rem;
+    margin-bottom: 18px;
+    color: #9bb8ff;
+    font-style: italic;
+  }
+  #controls {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+  }
+  #hangmanReset, #hangmanNext {
+    background-color: #3a5dbf;
+    border: none;
+    color: #e6eeff;
+    padding: 14px 22px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 14px;
+    cursor: pointer;
+    box-shadow: 0 0 14px #5c83dc;
+    transition: background-color 0.3s ease;
+    user-select: none;
+  }
+  #hangmanReset:hover {
+    background-color: #5a7eda;
+  }
+  #hangmanNext:hover {
+    background-color: #4b6ed2;
+  }
+
+  /* RESPONSIVIDADE */
+  @media (max-width: 768px) {
+    .game-title {
+      font-size: 1.6rem;
+    }
+
+    #hangmanWordDisplay {
+      font-size: 2.4rem;
+      letter-spacing: 12px;
+    }
+
+    #hangmanLetters button {
+      font-size: 1rem;
+      padding: 10px 14px;
+      min-width: 36px;
+    }
+
+    #hangmanHint {
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+
+    #controls {
+      gap: 14px;
+    }
+
+    #hangmanReset, #hangmanNext {
+      font-size: 1rem;
+      padding: 12px 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    header, footer {
+      font-size: 1.2rem;
+      padding: 12px 16px;
+    }
+
+    .game-title {
+      font-size: 1.4rem;
+    }
+
+    #hangmanWordDisplay {
+      font-size: 2rem;
+      letter-spacing: 10px;
+    }
+
+    #hangmanLetters {
+      gap: 8px;
+    }
+
+    #hangmanLetters button {
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      min-width: 30px;
+    }
+
+    #hangmanStatus {
+      font-size: 1.1rem;
+    }
+
+    #hangmanReset, #hangmanNext {
+      font-size: 0.95rem;
+      padding: 10px 14px;
+    }
+
+    #hangmanCanvas {
+      width: 220px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    #hangmanWordDisplay {
+      font-size: 1.8rem;
+      letter-spacing: 8px;
+    }
+  }
+</style>
+</head>
+<body>
+<header>Desafio Forca</header>
+<main>
+  <h1 class="game-title">Jogo da Forca</h1>
+  <canvas id="hangmanCanvas" width="280" height="320" aria-label="Desenho da forca" role="img"></canvas>
+  <div id="hangmanWordDisplay" aria-live="polite" aria-atomic="true"></div>
+  <div id="hangmanLetters" role="group" aria-label="Letras para adivinhar"></div>
+  <div id="hangmanStatus" aria-live="polite" aria-atomic="true"></div>
+  <div id="hangmanHint" aria-live="polite" aria-atomic="true"></div>
+  <div id="controls">
+    <button id="hangmanReset" aria-label="Reiniciar o jogo">Reiniciar</button>
+    <button id="hangmanNext" aria-label="Próxima palavra">Próxima</button>
+  </div>
+</main>
+<footer>© 2025 Forca Azul - Todos os direitos reservados</footer>
+
+<script>
+  (() => {
+    const canvas = document.getElementById('hangmanCanvas');
+    const ctx = canvas.getContext('2d');
+    const wordDisplay = document.getElementById('hangmanWordDisplay');
+    const lettersContainer = document.getElementById('hangmanLetters');
+    const statusDisplay = document.getElementById('hangmanStatus');
+    const hintDisplay = document.getElementById('hangmanHint');
+    const resetBtn = document.getElementById('hangmanReset');
+    const nextBtn = document.getElementById('hangmanNext');
+
+    // Lista de palavras e dicas
+   const words = [
+  { word: 'JAVASCRIPT', hint: 'Linguagem de programação web' },
+  { word: 'AZUL', hint: 'Cor do céu em dia claro' },
+  { word: 'FORCA', hint: 'Nome do jogo' },
+  { word: 'PROGRAMACAO', hint: 'Atividade de codificar' },
+  { word: 'DESAFIO', hint: 'Algo que requer esforço' },
+  { word: 'CANVAS', hint: 'Elemento HTML para desenhos' },
+  { word: 'RESPONSIVO', hint: 'Site que funciona em qualquer tela' },
+  { word: 'BROWSER', hint: 'Programa para acessar a web' },
+  { word: 'ALGORITMO', hint: 'Sequência lógica de passos' },
+  { word: 'DEBUG', hint: 'Processo de encontrar erros' },
+  { word: 'SOL', hint: 'Estrela que ilumina nosso planeta' },
+  { word: 'LUA', hint: 'Satélite natural da Terra' },
+  { word: 'MAR', hint: 'Grande massa de água salgada' },
+  { word: 'GATO', hint: 'Animal de estimação que gosta de miar' },
+  { word: 'CACHORRO', hint: 'Melhor amigo do homem' },
+  { word: 'MESA', hint: 'Móvel onde colocamos objetos' },
+  { word: 'CADEIRA', hint: 'Usada para sentar' },
+  { word: 'SOLAR', hint: 'Relacionado ao sol' },
+  { word: 'NAVE', hint: 'Veículo espacial' },
+  { word: 'FLOR', hint: 'Parte colorida da planta' },
+  { word: 'ÁRVORE', hint: 'Planta grande com tronco' },
+  { word: 'CARRO', hint: 'Veículo com rodas' },
+  { word: 'CASA', hint: 'Lugar onde moramos' },
+  { word: 'BOLA', hint: 'Usada em jogos e esportes' },
+  { word: 'PEIXE', hint: 'Animal que vive na água' },
+  { word: 'PASSARO', hint: 'Animal que voa' },
+  { word: 'CHUVA', hint: 'Água que cai do céu' },
+  { word: 'FOLHA', hint: 'Parte verde da planta' },
+  { word: 'FUMAÇA', hint: 'Produzida pelo fogo' },
+  { word: 'MEL', hint: 'Doce produzido pelas abelhas' },
+  { word: 'NEVE', hint: 'Água congelada que cai do céu' },
+  { word: 'RIO', hint: 'Água corrente' },
+  { word: 'PATO', hint: 'Ave que nada na água' },
+  { word: 'SOLUÇÃO', hint: 'Resposta para um problema' },
+  { word: 'VENTO', hint: 'Ar em movimento' },
+  { word: 'FOGO', hint: 'Fonte de calor e luz' },
+  { word: 'LIVRO', hint: 'Objeto para leitura' },
+  { word: 'RELÓGIO', hint: 'Marca o tempo' },
+  { word: 'TELA', hint: 'Parte de um monitor' },
+  { word: 'VACA', hint: 'Animal que dá leite' },
+  { word: 'PEDESTRE', hint: 'Pessoa que anda a pé' },
+  { word: 'TREM', hint: 'Transporte sobre trilhos' },
+  { word: 'PONTE', hint: 'Estrutura para atravessar rio' },
+  { word: 'ILHA', hint: 'Terra cercada por água' },
+  { word: 'NUVEM', hint: 'Massa de vapor no céu' }
+];
+
+    let chosenWord = '';
+    let chosenHint = '';
+    let guessedLetters = new Set();
+    let wrongGuesses = 0;
+    const maxWrong = 6;
+
+    // Desenha a forca e boneco de acordo com erros
+    function drawHangman(errors) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#a3c1f7';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+
+      // Base
+      ctx.beginPath();
+      ctx.moveTo(20, 310);
+      ctx.lineTo(260, 310);
+      ctx.stroke();
+
+      // Poste vertical
+      ctx.beginPath();
+      ctx.moveTo(60, 310);
+      ctx.lineTo(60, 20);
+      ctx.stroke();
+
+      // Poste horizontal
+      ctx.beginPath();
+      ctx.moveTo(60, 20);
+      ctx.lineTo(200, 20);
+      ctx.stroke();
+
+      // Corda
+      ctx.beginPath();
+      ctx.moveTo(200, 20);
+      ctx.lineTo(200, 60);
+      ctx.stroke();
+
+      if (errors > 0) {
+        // Cabeça
+        ctx.beginPath();
+        ctx.strokeStyle = '#739ce6';
+        ctx.lineWidth = 3;
+        ctx.arc(200, 85, 25, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      if (errors > 1) {
+        // Corpo
+        ctx.beginPath();
+        ctx.moveTo(200, 110);
+        ctx.lineTo(200, 200);
+        ctx.stroke();
+      }
+      if (errors > 2) {
+        // Braço esquerdo
+        ctx.beginPath();
+        ctx.moveTo(200, 130);
+        ctx.lineTo(160, 170);
+        ctx.stroke();
+      }
+      if (errors > 3) {
+        // Braço direito
+        ctx.beginPath();
+        ctx.moveTo(200, 130);
+        ctx.lineTo(240, 170);
+        ctx.stroke();
+      }
+      if (errors > 4) {
+        // Perna esquerda
+        ctx.beginPath();
+        ctx.moveTo(200, 200);
+        ctx.lineTo(160, 250);
+        ctx.stroke();
+      }
+      if (errors > 5) {
+        // Perna direita
+        ctx.beginPath();
+        ctx.moveTo(200, 200);
+        ctx.lineTo(240, 250);
+        ctx.stroke();
+      }
+    }
+
+    // Atualiza a palavra mostrada no jogo
+    function updateWordDisplay() {
+      let display = '';
+      for (let char of chosenWord) {
+        if (guessedLetters.has(char)) {
+          display += char + ' ';
+        } else if (char === ' ') {
+          display += '\u00A0\u00A0'; // espaço
+        } else {
+          display += '_ ';
+        }
+      }
+      wordDisplay.textContent = display.trim();
+    }
+
+    // Cria os botões das letras
+    function createLetterButtons() {
+      lettersContainer.innerHTML = '';
+      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      for (let letter of alphabet) {
+        const btn = document.createElement('button');
+        btn.textContent = letter;
+        btn.type = 'button';
+        btn.addEventListener('click', () => handleGuess(letter));
+        lettersContainer.appendChild(btn);
+      }
+    }
+
+    // Checa se jogador venceu
+    function checkWin() {
+      for (let char of chosenWord) {
+        if (char !== ' ' && !guessedLetters.has(char)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // Lida com chute do jogador
+    function handleGuess(letter) {
+      if (guessedLetters.has(letter)) return;
+      guessedLetters.add(letter);
+      const buttons = lettersContainer.querySelectorAll('button');
+      buttons.forEach(btn => {
+        if (btn.textContent === letter) btn.disabled = true;
+      });
+
+      if (chosenWord.includes(letter)) {
+        statusDisplay.textContent = 'Boa! A letra "' + letter + '" está correta.';
+      } else {
+        wrongGuesses++;
+        statusDisplay.textContent = 'Ops! A letra "' + letter + '" não está na palavra.';
+      }
+
+      updateWordDisplay();
+      drawHangman(wrongGuesses);
+
+      if (checkWin()) {
+        statusDisplay.textContent = 'Parabéns! Você ganhou!';
+        disableAllLetters();
+      } else if (wrongGuesses >= maxWrong) {
+        statusDisplay.textContent = 'Fim de jogo! A palavra era: ' + chosenWord;
+        revealWord();
+        disableAllLetters();
+      }
+    }
+
+    // Desabilita todos os botões de letra
+    function disableAllLetters() {
+      const buttons = lettersContainer.querySelectorAll('button');
+      buttons.forEach(btn => btn.disabled = true);
+    }
+
+    // Revela a palavra ao perder
+    function revealWord() {
+      let display = '';
+      for (let char of chosenWord) {
+        display += char + ' ';
+      }
+      wordDisplay.textContent = display.trim();
+    }
+
+    // Inicia ou reinicia o jogo
+    function startGame() {
+      const index = Math.floor(Math.random() * words.length);
+      chosenWord = words[index].word;
+      chosenHint = words[index].hint;
+      guessedLetters = new Set();
+      wrongGuesses = 0;
+      statusDisplay.textContent = '';
+      hintDisplay.textContent = 'Dica: ' + chosenHint;
+      createLetterButtons();
+      updateWordDisplay();
+      drawHangman(wrongGuesses);
+    }
+
+    // Botões
+    resetBtn.addEventListener('click', () => {
+      startGame();
+      statusDisplay.textContent = 'Jogo reiniciado!';
+    });
+
+    nextBtn.addEventListener('click', () => {
+      startGame();
+      statusDisplay.textContent = 'Nova palavra carregada!';
+    });
+
+    // Inicializa
+    startGame();
+  })();
+</script>
+</body>
+</html>
